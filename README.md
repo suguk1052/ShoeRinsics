@@ -95,12 +95,20 @@ and test them with our proposed metric:
 test.py --weights_decomposer=../models/decomposer_best_state.t7    --dataroot=../data/     --val_dataset_dir=real_val
 ```
 <p align="justify">
-    Note that weights_decomposer should specify the path to the pretrained model. 
+    Note that weights_decomposer should specify the path to the pretrained model.
     Dataroot should specify the path to the root directory which holds all datasets used in the experiments.
     Val_dataset_dir should name the directory for the validation dataset used (real_val or real_FID_val).
 </p>
 
 Our predictions on real-val and real-FID-val are available [here](https://drive.google.com/drive/folders/1koeAF1iKp_fjviEaD0UvbYRb2Yx8TPnF?usp=share_link).
+
+To test with a set of already masked images and save **grayscale** depth maps, place the images inside a single folder and run:
+```
+grayscale.py --weights_decomposer=../models/decomposer_best_state.t7 \
+             --dataroot=../data/ --val_dataset_dir=masked_images
+```
+This expects `../data/masked_images/` to contain the input images with black
+backgrounds. The results will be written to `../results/shoerinsics/masked_images/`.
 
 ### Training
 
