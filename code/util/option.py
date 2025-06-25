@@ -10,7 +10,7 @@ class Options():
 
     def initialize(self):
 
-        self.parser.add_argument("--output", default="../results", help="Folder to save results and models.")
+        self.parser.add_argument("--output", default="results", help="Folder to save results and models.")
         self.parser.add_argument("--exp_name", default="shoerinsics", help="Name of experiment.")
         self.parser.add_argument("--weights_decomposer", required=self.train, default=None, help="Path to pretrained decomposer.")
 
