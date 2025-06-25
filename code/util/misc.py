@@ -110,10 +110,17 @@ def save_individual_images(data, folder, name, pad_h_before=None, pad_h_after=No
         else:
             ind = [0]
         for i in range(image.shape[0]):
-            if pad_h_before == None or (pad_h_before == 0 and pad_w_before == 0):
+            if pad_h_before is None or (pad_h_before[i].item() == 0 and pad_w_before[i].item() == 0 and
+                                        pad_h_after[i].item() == 0 and pad_w_after[i].item() == 0):
                 sub_image = image[i, ind, ...]
             else:
-                sub_image = image[i, ind, pad_h_before[i]:-pad_h_after[i], pad_w_before[i]:-pad_w_after[i]]
+                phb = int(pad_h_before[i].item())
+                pha = int(pad_h_after[i].item())
+                pwb = int(pad_w_before[i].item())
+                pwa = int(pad_w_after[i].item())
+                h_end = image.shape[2] - pha if pha > 0 else image.shape[2]
+                w_end = image.shape[3] - pwa if pwa > 0 else image.shape[3]
+                sub_image = image[i, ind, phb:h_end, pwb:w_end]
             os.makedirs(os.path.join(folder, title), exist_ok=True)
 
             n = name[i] + ".png" if len(name[i]) < 5 or name[i][-4:] not in [".png", ".jpg"] else name[i]

@@ -58,7 +58,7 @@ class MaskedImageDataset(object):
         albedo = get_invalid_tensor(tensor=False)
         name = os.path.basename(self.image_files[index])
 
-        return image, mask[0:1, ...].astype(np.bool), print_, albedo, name, \
+        return image, mask[0:1, ...].astype(bool), print_, albedo, name, \
                pad_h_before, pad_h_after, pad_w_before, pad_w_after
 
     def __len__(self):
