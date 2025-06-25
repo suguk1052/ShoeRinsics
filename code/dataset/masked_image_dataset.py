@@ -20,8 +20,9 @@ class MaskedImageDataset(object):
 
         print("Total masked images:", len(self.image_files))
 
-        sample_image = read_image(self.image_files[0])
-        shape = sample_image.shape
+
+    def _compute_padding(self, shape):
+        """Return padding values for an image shape."""
         h = self.patch_height
         while h < shape[0]:
             h += self.patch_height
@@ -29,20 +30,25 @@ class MaskedImageDataset(object):
         while w < shape[1]:
             w += self.patch_width
 
-        self.pad_h_before = (h - shape[0]) // 2
-        self.pad_h_after = (h - shape[0]) - self.pad_h_before
-        self.pad_w_before = (w - shape[1]) // 2
-        self.pad_w_after = (w - shape[1]) - self.pad_w_before
+        pad_h_before = (h - shape[0]) // 2
+        pad_h_after = (h - shape[0]) - pad_h_before
+        pad_w_before = (w - shape[1]) // 2
+        pad_w_after = (w - shape[1]) - pad_w_before
+        return pad_h_before, pad_h_after, pad_w_before, pad_w_after
 
     def __getitem__(self, index):
         index = index % len(self.image_files)
         image = read_image(self.image_files[index])
 
         mask = np.any(image > 0, axis=2, keepdims=True)
-        image = np.pad(image, ((self.pad_h_before, self.pad_h_after),
-                               (self.pad_w_before, self.pad_w_after), (0, 0)), mode='edge')
-        mask = np.pad(mask, ((self.pad_h_before, self.pad_h_after),
-                             (self.pad_w_before, self.pad_w_after), (0, 0)), mode='edge')
+
+        pad_h_before, pad_h_after, pad_w_before, pad_w_after = \
+            self._compute_padding(image.shape)
+
+        image = np.pad(image, ((pad_h_before, pad_h_after),
+                               (pad_w_before, pad_w_after), (0, 0)), mode='edge')
+        mask = np.pad(mask, ((pad_h_before, pad_h_after),
+                             (pad_w_before, pad_w_after), (0, 0)), mode='edge')
 
         mask3d_inverted = ~mask.repeat(3, axis=2)
         image[mask3d_inverted] = 1
@@ -53,7 +59,7 @@ class MaskedImageDataset(object):
         name = os.path.basename(self.image_files[index])
 
         return image, mask[0:1, ...].astype(np.bool), print_, albedo, name, \
-               self.pad_h_before, self.pad_h_after, self.pad_w_before, self.pad_w_after
+               pad_h_before, pad_h_after, pad_w_before, pad_w_after
 
     def __len__(self):
         return len(self.image_files)

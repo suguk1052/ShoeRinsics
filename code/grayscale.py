@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 
 from code.util.option import Options
 from code.util.misc import make_variable, save_individual_images, save_tensor_grid
+from torchvision.utils import save_image
+import torch.nn.functional as F
 from code.util.augmentation import reverse_modification, get_image_modifications
 from code.model.models import get_model
 from code.dataset.masked_image_dataset import MaskedImageDataset
@@ -55,6 +57,18 @@ def normalize_depth_to_gray(depth, mask):
     depth = torch.tensor(depth).unsqueeze(0).unsqueeze(0)
     return depth
 
+def crop_and_resize(tensor, pad_h_before, pad_h_after, pad_w_before, pad_w_after, width=300):
+    """Crop padded regions and resize tensor to the given width preserving aspect ratio."""
+    phb = int(pad_h_before)
+    pha = int(pad_h_after)
+    pwb = int(pad_w_before)
+    pwa = int(pad_w_after)
+    tensor = tensor[:, :, phb:tensor.shape[2]-pha, pwb:tensor.shape[3]-pwa]
+    h, w = tensor.shape[2], tensor.shape[3]
+    new_h = int(h * width / w)
+    tensor = F.interpolate(tensor, size=(new_h, width), mode='bilinear', align_corners=False)
+    return tensor
+
 def prepare_datasets(opt):
     dataset_dir = os.path.join(opt.dataroot, opt.val_dataset_dir)
     dataset = MaskedImageDataset(dataset_dir)
@@ -87,10 +101,15 @@ def main():
         visuals = get_average_visuals(net, image, mask, visuals=visuals, test_time_aug=opt.test_time_aug)
 
         depth_gray = normalize_depth_to_gray(visuals['depth pred'], mask)
+        depth_gray = crop_and_resize(depth_gray, pad_h_before, pad_h_after, pad_w_before, pad_w_after, width=300)
         visuals['depth pred'] = depth_gray
 
         save_path = os.path.join(opt.output, image_dir, "grid", name[0])
         save_tensor_grid(visuals, save_path, fig_shape=[1, 3], figsize=(10, 3))
+
+        # save only the resized grayscale depth map
+        os.makedirs(os.path.join(opt.output, image_dir, "depth_gray"), exist_ok=True)
+        save_image(depth_gray[0], os.path.join(opt.output, image_dir, "depth_gray", name[0]))
 
         del visuals[name[0]]
         visuals['real image'] = image

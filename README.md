@@ -107,8 +107,11 @@ To test with a set of already masked images and save **grayscale** depth maps, p
 grayscale.py --weights_decomposer=../models/decomposer_best_state.t7 \
              --dataroot=../data/ --val_dataset_dir=masked_images
 ```
-This expects `../data/masked_images/` to contain the input images with black
-backgrounds. The results will be written to `../results/shoerinsics/masked_images/`.
+`../data/masked_images/` should contain single-channel or RGB images where the
+background is completely black. Images can be of any resolution; the script
+will pad them as needed before inference. Grayscale depth maps resized to a
+width of 300&nbsp;pixels (while keeping the original aspect ratio) will be saved
+to `../results/shoerinsics/masked_images/depth_gray/`.
 
 ### Training
 
