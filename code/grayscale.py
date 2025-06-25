@@ -89,6 +89,7 @@ def main():
     dataloader = prepare_datasets(opt)
     image_dir = opt.val_dataset_dir + ("_test_time_aug" if opt.test_time_aug else "")
     os.makedirs(os.path.join(opt.output, image_dir, "grid"), exist_ok=True)
+    print(f"Saving outputs to {os.path.join(opt.output, image_dir)}")
 
     for data in dataloader:
         image, mask, _, _, name, pad_h_before, pad_h_after, pad_w_before, pad_w_after = data
@@ -98,7 +99,8 @@ def main():
         visuals[name[0]] = image
         visuals['mask'] = mask
 
-        visuals = get_average_visuals(net, image, mask, visuals=visuals, test_time_aug=opt.test_time_aug)
+        visuals = get_average_visuals(net, image, mask, visuals=visuals,
+                                      conv=False, test_time_aug=opt.test_time_aug)
 
         depth_gray = normalize_depth_to_gray(visuals['depth pred'], mask)
         depth_gray = crop_and_resize(depth_gray, pad_h_before, pad_h_after, pad_w_before, pad_w_after, width=300)

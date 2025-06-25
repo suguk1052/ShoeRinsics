@@ -38,11 +38,11 @@ def get_color_mapped_images(depth, mask=None, cmap='viridis', mask_color=1, orig
             max_ = np.max(depth[mask])
             depth = (depth - min_)/(max_ - min_)
         depth[~mask] = 1
-    if cmap is None or cmap is 'viridis':
+    if cmap is None or cmap == 'viridis':
         cmap = viridis_cmap
-    elif cmap is 'jet':
+    elif cmap == 'jet':
         cmap = jet_cmap
-    elif cmap is 'jet2':
+    elif cmap == 'jet2':
         cmap = jet_cmap2
     depth = (depth *255).astype(np.uint8)
     result = cmap[depth, :]

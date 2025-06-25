@@ -112,6 +112,8 @@ background is completely black. Images can be of any resolution; the script
 will pad them as needed before inference. Grayscale depth maps resized to a
 width of 300&nbsp;pixels (while keeping the original aspect ratio) will be saved
 to `../results/shoerinsics/masked_images/depth_gray/`.
+`../results` is relative to the repository root, so outputs may appear one
+directory above the code folder when using the default options.
 
 ### Training
 
