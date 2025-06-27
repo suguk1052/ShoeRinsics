@@ -59,6 +59,8 @@ def _normalize_depth(depth, mask, lower=10, upper=90):
     vals = depth_np[mask_np]
     min_ = np.percentile(vals, lower)
     max_ = np.percentile(vals, upper)
+    if max_ - min_ < 1e-8:
+        max_ = min_ + 1e-8
     depth_np = np.clip(depth_np, min_, max_)
     depth_np = (depth_np - min_) / (max_ - min_)
     depth_np[~mask_np] = 0
@@ -109,7 +111,6 @@ def main():
         depth_norm, mask_norm = enhance_depth_contrast(
             visuals['depth pred'], mask, lower=lower, upper=upper
         )
-        print_pred = ~get_print(depth_norm, mask_norm, None)
         depth_color = get_color_mapped_images(
             depth_norm.squeeze().cpu().numpy(),
             mask_norm.squeeze().cpu().numpy(),
@@ -118,7 +119,11 @@ def main():
             to_tensor=True,
         ).to(device)
         depth_gray = 1 - depth_norm
-        depth_gray[~mask_norm] = 0
+        depth_gray[~mask_norm] = 0.5
+
+        print_pred = ~get_print(depth_norm, mask_norm, None)
+        print_pred = print_pred.float()
+        print_pred[~mask_norm] = 0
 
         visuals['mask'] = mask
         visuals['print pred'] = print_pred

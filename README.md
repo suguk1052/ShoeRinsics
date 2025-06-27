@@ -113,7 +113,7 @@ background is completely black. Images can be of any resolution; the script
 will pad them as needed before inference. Both viridis-colored depth maps
 (`depth_pred`) and grayscale maps (`depth_gray`) are saved. The grayscale version
 keeps closer regions bright and farther regions dark, with the background
-rendered black. Depth values are normalized using the 10th and 90th percentiles
+rendered **gray**. Depth values are normalized using the 10th and 90th percentiles
 by default to reduce contrast. You can adjust this with `--depth_percentiles`.
 All outputs are resized to a
 width of 300&nbsp;pixels (while keeping the original aspect ratio) and saved

@@ -149,11 +149,14 @@ def show_tensor_grid(data, BGR_to_RGB=True, fig_shape='square', figsize=None):
         image = get_image_from_tensor(data[title])
         if BGR_to_RGB and len(image.shape) == 3:
             image = image[..., [2, 1, 0]]
+            cmap = None
+        else:
+            cmap = 'gray' if len(image.shape) == 2 else None
         if 1 in fig_shape:
-            axs[ax_coord[0]].imshow(image)
+            axs[ax_coord[0]].imshow(image, cmap=cmap)
             axs[ax_coord[0]].set_title(title)
         else:
-            axs[ax_coord[0], ax_coord[1]].imshow(image)
+            axs[ax_coord[0], ax_coord[1]].imshow(image, cmap=cmap)
             axs[ax_coord[0], ax_coord[1]].set_title(title)
     fig.tight_layout()
     return fig
