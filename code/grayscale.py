@@ -106,7 +106,7 @@ def main():
         )
 
         depth_norm, mask_norm = enhance_depth_contrast(visuals['depth pred'], mask)
-        print_pred = get_print(depth_norm, mask_norm, None)
+        print_pred = ~get_print(depth_norm, mask_norm, None)
         depth_color = get_color_mapped_images(
             depth_norm.squeeze().cpu().numpy(),
             mask_norm.squeeze().cpu().numpy(),
@@ -114,13 +114,16 @@ def main():
             original_scale=True,
             to_tensor=True,
         ).to(device)
+        depth_gray = 1 - depth_norm
+        depth_gray[~mask_norm] = 0.5
 
         visuals['mask'] = mask
         visuals['print pred'] = print_pred
         visuals['depth pred'] = depth_color
+        visuals['depth gray'] = depth_gray
 
         save_path = os.path.join(opt.output, image_dir, "grid", name[0])
-        save_tensor_grid(visuals, save_path, fig_shape=[2, 2], figsize=(8, 8))
+        save_tensor_grid(visuals, save_path, fig_shape=[2, 3], figsize=(12, 8))
 
         del visuals[name[0]]
         visuals['real image'] = image

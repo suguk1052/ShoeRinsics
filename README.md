@@ -112,7 +112,7 @@ background is completely black. Images can be of any resolution; the script
 will pad them as needed before inference. Both viridis-colored depth maps
 (`depth_pred`) and grayscale maps (`depth_gray`) are saved. The grayscale version
 inverts the usual shading so that closer regions appear brighter while the
-background stays black. All outputs are resized to a width of 300&nbsp;pixels
+background is a neutral gray. All outputs are resized to a width of 300&nbsp;pixels
 (while keeping the original aspect ratio) and saved under
 `results/shoerinsics/masked_images/`.
 Outputs are saved under `results/` in the repository root by default.
