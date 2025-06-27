@@ -102,16 +102,19 @@ test.py --weights_decomposer=../models/decomposer_best_state.t7    --dataroot=..
 
 Our predictions on real-val and real-FID-val are available [here](https://drive.google.com/drive/folders/1koeAF1iKp_fjviEaD0UvbYRb2Yx8TPnF?usp=share_link).
 
-To test with a set of already masked images and save **grayscale** depth maps, place the images inside a single folder and run:
+To test with a set of already masked images and save depth maps, place the images inside a single folder and run:
 ```
 grayscale.py --weights_decomposer=../models/decomposer_best_state.t7 \
              --dataroot=../data/ --val_dataset_dir=masked_images
 ```
 `../data/masked_images/` should contain single-channel or RGB images where the
 background is completely black. Images can be of any resolution; the script
-will pad them as needed before inference. Grayscale depth maps resized to a
-width of 300&nbsp;pixels (while keeping the original aspect ratio) will be saved
-to `results/shoerinsics/masked_images/depth_gray/`.
+will pad them as needed before inference. Both viridis-colored depth maps
+(`depth_pred`) and grayscale maps (`depth_gray`) are saved. The grayscale version
+inverts the usual shading so that closer regions appear brighter while the
+background stays black. All outputs are resized to a width of 300&nbsp;pixels
+(while keeping the original aspect ratio) and saved under
+`results/shoerinsics/masked_images/`.
 Outputs are saved under `results/` in the repository root by default.
 
 ### Training

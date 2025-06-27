@@ -6,7 +6,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from code.util.option import Options
-from code.util.misc import make_variable, save_individual_images, save_tensor_grid
+from code.util.misc import (make_variable, save_individual_images,
+                            save_tensor_grid, get_color_mapped_images)
 from torchvision.utils import save_image
 import torch.nn.functional as F
 from code.util.augmentation import reverse_modification, get_image_modifications
@@ -45,7 +46,8 @@ def get_average_visuals(net, image, mask, visuals=None, subtract_min_depth=True,
 
     return visuals
 
-def normalize_depth_to_gray(depth, mask):
+def _normalize_depth(depth, mask, invert=True):
+    """Normalize depth to [0,1] and optionally invert. Background is set to 0."""
     depth = depth.squeeze().cpu().detach().numpy()
     mask = mask.squeeze().cpu().detach().numpy()
     if len(depth.shape) == 3:
@@ -53,9 +55,22 @@ def normalize_depth_to_gray(depth, mask):
     min_ = np.min(depth[mask])
     max_ = np.max(depth[mask])
     depth = (depth - min_) / (max_ - min_)
-    depth[~mask] = 1
+    if invert:
+        depth = 1 - depth
+    depth[~mask] = 0
+    return depth, mask
+
+
+def normalize_depth_to_gray(depth, mask):
+    depth, mask = _normalize_depth(depth, mask, invert=True)
     depth = torch.tensor(depth).unsqueeze(0).unsqueeze(0)
     return depth
+
+def normalize_depth_to_color(depth, mask):
+    depth, mask_np = _normalize_depth(depth, mask, invert=True)
+    depth_color = get_color_mapped_images(depth, mask_np, mask_color=0,
+                                         original_scale=True, to_tensor=True)
+    return depth_color
 
 def crop_and_resize(tensor, pad_h_before, pad_h_after, pad_w_before, pad_w_after, width=300):
     """Crop padded regions and resize tensor to the given width preserving aspect ratio."""
@@ -97,21 +112,27 @@ def main():
 
         visuals = OrderedDict()
         visuals[name[0]] = image
-        visuals['mask'] = mask
 
         visuals = get_average_visuals(net, image, mask, visuals=visuals,
                                       conv=False, test_time_aug=opt.test_time_aug)
 
         depth_gray = normalize_depth_to_gray(visuals['depth pred'], mask)
+        depth_color = normalize_depth_to_color(visuals['depth pred'], mask).to(device)
+
         depth_gray = crop_and_resize(depth_gray, pad_h_before, pad_h_after, pad_w_before, pad_w_after, width=300)
-        visuals['depth pred'] = depth_gray
+        depth_color = crop_and_resize(depth_color, pad_h_before, pad_h_after, pad_w_before, pad_w_after, width=300)
+
+        visuals['mask'] = mask
+        visuals['depth pred'] = depth_color
+        visuals['depth gray'] = depth_gray
 
         save_path = os.path.join(opt.output, image_dir, "grid", name[0])
-        save_tensor_grid(visuals, save_path, fig_shape=[1, 3], figsize=(10, 3))
+        save_tensor_grid(visuals, save_path, fig_shape=[1, 4], figsize=(13, 3))
 
-        # save only the resized grayscale depth map
         os.makedirs(os.path.join(opt.output, image_dir, "depth_gray"), exist_ok=True)
         save_image(depth_gray[0], os.path.join(opt.output, image_dir, "depth_gray", name[0]))
+        os.makedirs(os.path.join(opt.output, image_dir, "depth_pred"), exist_ok=True)
+        save_image(depth_color[0], os.path.join(opt.output, image_dir, "depth_pred", name[0]))
 
         del visuals[name[0]]
         visuals['real image'] = image
