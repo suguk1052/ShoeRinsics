@@ -49,8 +49,8 @@ def get_average_visuals(net, image, mask, visuals=None, subtract_min_depth=True,
 
     return visuals
 
-def _normalize_depth(depth, mask, lower=5, upper=95):
-    """Normalize depth to [0,1] using percentiles to enhance contrast."""
+def _normalize_depth(depth, mask, lower=10, upper=90):
+    """Normalize depth to [0,1] using percentiles to adjust contrast."""
     depth_np = depth.squeeze().cpu().detach().numpy()
     mask_np = mask.squeeze().cpu().detach().numpy()
     if depth_np.ndim == 3:
@@ -68,7 +68,7 @@ def _normalize_depth(depth, mask, lower=5, upper=95):
     return depth_tensor, mask_tensor
 
 
-def enhance_depth_contrast(depth, mask, lower=5, upper=95):
+def enhance_depth_contrast(depth, mask, lower=10, upper=90):
     depth_norm, mask_norm = _normalize_depth(depth, mask, lower, upper)
     return depth_norm.to(depth.device), mask_norm.to(mask.device)
 
@@ -105,7 +105,10 @@ def main():
             net, image, mask, visuals=visuals, conv=False, test_time_aug=opt.test_time_aug
         )
 
-        depth_norm, mask_norm = enhance_depth_contrast(visuals['depth pred'], mask)
+        lower, upper = opt.depth_percentiles
+        depth_norm, mask_norm = enhance_depth_contrast(
+            visuals['depth pred'], mask, lower=lower, upper=upper
+        )
         print_pred = ~get_print(depth_norm, mask_norm, None)
         depth_color = get_color_mapped_images(
             depth_norm.squeeze().cpu().numpy(),

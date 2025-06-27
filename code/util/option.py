@@ -24,6 +24,12 @@ class Options():
         self.parser.add_argument("--test_time_aug", action='store_true', help="whether or not to use test time augmentation.")
         self.parser.set_defaults(test_time_aug=False)
 
+        self.parser.add_argument(
+            "--depth_percentiles",
+            default="10,90",
+            help="Lower and upper percentile for depth normalization.",
+        )
+
 
 
         self.parser.add_argument("--num_workers", default=0, type=int, help="Number of threads for multiprocessing. Leave as 0 for a single process execution.")
@@ -116,6 +122,7 @@ class Options():
         opt.output = os.path.join(opt.output, opt.exp_name)
         opt.syn_weights = list(map(float, opt.syn_weights.split(",")))
         opt.real_weights = list(map(float, opt.real_weights.split(",")))  # [3, 2]
+        opt.depth_percentiles = list(map(float, opt.depth_percentiles.split(",")))
 
         # opt.syn_only = opt.real_only = False
 
