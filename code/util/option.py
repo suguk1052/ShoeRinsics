@@ -10,7 +10,7 @@ class Options():
 
     def initialize(self):
 
-        self.parser.add_argument("--output", default="../results", help="Folder to save results and models.")
+        self.parser.add_argument("--output", default="results", help="Folder to save results and models.")
         self.parser.add_argument("--exp_name", default="shoerinsics", help="Name of experiment.")
         self.parser.add_argument("--weights_decomposer", required=self.train, default=None, help="Path to pretrained decomposer.")
 
@@ -23,6 +23,12 @@ class Options():
 
         self.parser.add_argument("--test_time_aug", action='store_true', help="whether or not to use test time augmentation.")
         self.parser.set_defaults(test_time_aug=False)
+
+        self.parser.add_argument(
+            "--depth_percentiles",
+            default="0,99",
+            help="Lower and upper percentile for depth normalization.",
+        )
 
 
 
@@ -116,6 +122,7 @@ class Options():
         opt.output = os.path.join(opt.output, opt.exp_name)
         opt.syn_weights = list(map(float, opt.syn_weights.split(",")))
         opt.real_weights = list(map(float, opt.real_weights.split(",")))  # [3, 2]
+        opt.depth_percentiles = list(map(float, opt.depth_percentiles.split(",")))
 
         # opt.syn_only = opt.real_only = False
 
