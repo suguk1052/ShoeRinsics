@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import cv2
 from .util import read_image, image_to_channels
 from code.util.misc import get_invalid_tensor
 
@@ -7,10 +8,11 @@ class MaskedImageDataset(object):
     """Dataset for images where background is already black.
     The mask is computed directly from the image."""
 
-    def __init__(self, input_dir, h=128, w=128):
+    def __init__(self, input_dir, h=128, w=128, max_width=512):
         self.input_dir = input_dir
         self.patch_height = h
         self.patch_width = w
+        self.max_width = max_width
 
         self.image_files = sorted([
             os.path.join(self.input_dir, f)
@@ -39,6 +41,12 @@ class MaskedImageDataset(object):
     def __getitem__(self, index):
         index = index % len(self.image_files)
         image = read_image(self.image_files[index])
+
+        if image.shape[1] != self.max_width:
+            scale = self.max_width / image.shape[1]
+            if scale != 1:
+                new_h = int(round(image.shape[0] * scale))
+                image = cv2.resize(image, (self.max_width, new_h), interpolation=cv2.INTER_AREA)
 
         mask = np.any(image > 0, axis=2, keepdims=True)
 

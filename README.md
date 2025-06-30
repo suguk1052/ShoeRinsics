@@ -105,19 +105,18 @@ Our predictions on real-val and real-FID-val are available [here](https://drive.
 To test with a set of already masked images and save depth maps, place the images inside a single folder and run:
 ```
 grayscale.py --weights_decomposer=../models/decomposer_best_state.t7 \
-             --dataroot=../data/ --val_dataset_dir=masked_images \
-             --depth_percentiles=10,90
+             --dataroot=../data/ --val_dataset_dir=masked_images
 ```
 `../data/masked_images/` should contain single-channel or RGB images where the
 background is completely black. Images can be of any resolution; the script
-will pad them as needed before inference. The script uses all available GPUs
-via `DataParallel` when running.
+resizes each one so the width is 512&nbsp;pixels before inference and runs only
+on GPU&nbsp;0.
 
 Only the print prediction, the colorized depth (`depth_pred`), and the inverted
 grayscale depth (`depth_gray`) are saved for each input. Grid layouts, masks,
-and the original image are omitted. Depth values are normalized using the 10th
-and 90th percentiles by default to reduce contrast. All outputs are resized to a
-width of 300&nbsp;pixels (while keeping the original aspect ratio) and saved under
+and the original image are omitted. Depth values are normalized using the 0th
+and 99th percentiles by default to boost contrast. All outputs are resized to a
+width of 512&nbsp;pixels (while keeping the original aspect ratio) and saved under
 `results/shoerinsics/masked_images/` in the repository root.
 
 ### Training

@@ -97,7 +97,7 @@ def gaussian_kernel(kernlen=128, nsig=1):
     return kern2d/kern2d.sum()
 
 '''Create folders by the name of data (dictionary) keys and save images in data values in the corresponding folders.'''
-def save_individual_images(data, folder, name, pad_h_before=None, pad_h_after=None, pad_w_before=None, pad_w_after=None, BGR_to_RGB=True):
+def save_individual_images(data, folder, name, pad_h_before=None, pad_h_after=None, pad_w_before=None, pad_w_after=None, BGR_to_RGB=True, resize_w=None):
 
     for title in data.keys():
         image = data[title]
@@ -121,6 +121,13 @@ def save_individual_images(data, folder, name, pad_h_before=None, pad_h_after=No
                 h_end = image.shape[2] - pha if pha > 0 else image.shape[2]
                 w_end = image.shape[3] - pwa if pwa > 0 else image.shape[3]
                 sub_image = image[i, ind, phb:h_end, pwb:w_end]
+            if resize_w is not None:
+                h, w = sub_image.shape[1], sub_image.shape[2]
+                new_h = int(round(h * resize_w / w))
+                sub_image = torch.nn.functional.interpolate(
+                    sub_image.unsqueeze(0), size=(new_h, resize_w), mode="bilinear", align_corners=False
+                ).squeeze(0)
+
             os.makedirs(os.path.join(folder, title), exist_ok=True)
 
             n = name[i] + ".png" if len(name[i]) < 5 or name[i][-4:] not in [".png", ".jpg"] else name[i]

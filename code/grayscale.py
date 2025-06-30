@@ -88,8 +88,6 @@ def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     net = get_model('decomposer', weights_init=opt.weights_decomposer, output_last_ft=True, out_range='0,1').to(device)
-    if torch.cuda.device_count() > 1:
-        net = torch.nn.DataParallel(net, device_ids=list(range(torch.cuda.device_count())))
     net.eval()
 
     dataloader = prepare_datasets(opt)
@@ -137,6 +135,7 @@ def main():
             pad_h_after=pad_h_after,
             pad_w_before=pad_w_before,
             pad_w_after=pad_w_after,
+            resize_w=512,
         )
 
     return

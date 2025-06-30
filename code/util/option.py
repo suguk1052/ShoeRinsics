@@ -26,7 +26,7 @@ class Options():
 
         self.parser.add_argument(
             "--depth_percentiles",
-            default="10,90",
+            default="0,99",
             help="Lower and upper percentile for depth normalization.",
         )
 
