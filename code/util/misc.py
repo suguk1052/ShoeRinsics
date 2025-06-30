@@ -38,11 +38,11 @@ def get_color_mapped_images(depth, mask=None, cmap='viridis', mask_color=1, orig
             max_ = np.max(depth[mask])
             depth = (depth - min_)/(max_ - min_)
         depth[~mask] = 1
-    if cmap is None or cmap is 'viridis':
+    if cmap is None or cmap == 'viridis':
         cmap = viridis_cmap
-    elif cmap is 'jet':
+    elif cmap == 'jet':
         cmap = jet_cmap
-    elif cmap is 'jet2':
+    elif cmap == 'jet2':
         cmap = jet_cmap2
     depth = (depth *255).astype(np.uint8)
     result = cmap[depth, :]
@@ -97,7 +97,7 @@ def gaussian_kernel(kernlen=128, nsig=1):
     return kern2d/kern2d.sum()
 
 '''Create folders by the name of data (dictionary) keys and save images in data values in the corresponding folders.'''
-def save_individual_images(data, folder, name, pad_h_before=None, pad_h_after=None, pad_w_before=None, pad_w_after=None, BGR_to_RGB=True):
+def save_individual_images(data, folder, name, pad_h_before=None, pad_h_after=None, pad_w_before=None, pad_w_after=None, BGR_to_RGB=True, resize_w=None):
 
     for title in data.keys():
         image = data[title]
@@ -110,10 +110,24 @@ def save_individual_images(data, folder, name, pad_h_before=None, pad_h_after=No
         else:
             ind = [0]
         for i in range(image.shape[0]):
-            if pad_h_before == None or (pad_h_before == 0 and pad_w_before == 0):
+            if pad_h_before is None or (pad_h_before[i].item() == 0 and pad_w_before[i].item() == 0 and
+                                        pad_h_after[i].item() == 0 and pad_w_after[i].item() == 0):
                 sub_image = image[i, ind, ...]
             else:
-                sub_image = image[i, ind, pad_h_before[i]:-pad_h_after[i], pad_w_before[i]:-pad_w_after[i]]
+                phb = int(pad_h_before[i].item())
+                pha = int(pad_h_after[i].item())
+                pwb = int(pad_w_before[i].item())
+                pwa = int(pad_w_after[i].item())
+                h_end = image.shape[2] - pha if pha > 0 else image.shape[2]
+                w_end = image.shape[3] - pwa if pwa > 0 else image.shape[3]
+                sub_image = image[i, ind, phb:h_end, pwb:w_end]
+            if resize_w is not None:
+                h, w = sub_image.shape[1], sub_image.shape[2]
+                new_h = int(round(h * resize_w / w))
+                sub_image = torch.nn.functional.interpolate(
+                    sub_image.unsqueeze(0), size=(new_h, resize_w), mode="bilinear", align_corners=False
+                ).squeeze(0)
+
             os.makedirs(os.path.join(folder, title), exist_ok=True)
 
             n = name[i] + ".png" if len(name[i]) < 5 or name[i][-4:] not in [".png", ".jpg"] else name[i]
@@ -142,11 +156,14 @@ def show_tensor_grid(data, BGR_to_RGB=True, fig_shape='square', figsize=None):
         image = get_image_from_tensor(data[title])
         if BGR_to_RGB and len(image.shape) == 3:
             image = image[..., [2, 1, 0]]
+            cmap = None
+        else:
+            cmap = 'gray' if len(image.shape) == 2 else None
         if 1 in fig_shape:
-            axs[ax_coord[0]].imshow(image)
+            axs[ax_coord[0]].imshow(image, cmap=cmap)
             axs[ax_coord[0]].set_title(title)
         else:
-            axs[ax_coord[0], ax_coord[1]].imshow(image)
+            axs[ax_coord[0], ax_coord[1]].imshow(image, cmap=cmap)
             axs[ax_coord[0], ax_coord[1]].set_title(title)
     fig.tight_layout()
     return fig
