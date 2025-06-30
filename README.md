@@ -110,15 +110,15 @@ grayscale.py --weights_decomposer=../models/decomposer_best_state.t7 \
 ```
 `../data/masked_images/` should contain single-channel or RGB images where the
 background is completely black. Images can be of any resolution; the script
-will pad them as needed before inference. Both viridis-colored depth maps
-(`depth_pred`) and grayscale maps (`depth_gray`) are saved. The grayscale version
-keeps closer regions bright and farther regions dark, with the background
-rendered **gray**. Depth values are normalized using the 10th and 90th percentiles
-by default to reduce contrast. You can adjust this with `--depth_percentiles`.
-All outputs are resized to a
-width of 300&nbsp;pixels (while keeping the original aspect ratio) and saved
-under `results/shoerinsics/masked_images/`.
-Outputs are saved under `results/` in the repository root by default.
+will pad them as needed before inference. The script uses all available GPUs
+via `DataParallel` when running.
+
+Only the print prediction, the colorized depth (`depth_pred`), and the inverted
+grayscale depth (`depth_gray`) are saved for each input. Grid layouts, masks,
+and the original image are omitted. Depth values are normalized using the 10th
+and 90th percentiles by default to reduce contrast. All outputs are resized to a
+width of 300&nbsp;pixels (while keeping the original aspect ratio) and saved under
+`results/shoerinsics/masked_images/` in the repository root.
 
 ### Training
 

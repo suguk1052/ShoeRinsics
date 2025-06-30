@@ -9,7 +9,6 @@ from code.util.option import Options
 from code.util.misc import (
     make_variable,
     save_individual_images,
-    save_tensor_grid,
     get_color_mapped_images,
 )
 from code.util.augmentation import reverse_modification, get_image_modifications
@@ -89,11 +88,12 @@ def main():
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     net = get_model('decomposer', weights_init=opt.weights_decomposer, output_last_ft=True, out_range='0,1').to(device)
+    if torch.cuda.device_count() > 1:
+        net = torch.nn.DataParallel(net, device_ids=list(range(torch.cuda.device_count())))
     net.eval()
 
     dataloader = prepare_datasets(opt)
     image_dir = opt.val_dataset_dir + ("_test_time_aug" if opt.test_time_aug else "")
-    os.makedirs(os.path.join(opt.output, image_dir, "grid"), exist_ok=True)
     print(f"Saving outputs to {os.path.join(opt.output, image_dir)}")
 
     for data in dataloader:
@@ -101,7 +101,6 @@ def main():
         image, mask = [make_variable(item, requires_grad=False).to(device) for item in [image, mask]]
 
         visuals = OrderedDict()
-        visuals[name[0]] = image
 
         visuals = get_average_visuals(
             net, image, mask, visuals=visuals, conv=False, test_time_aug=opt.test_time_aug
@@ -125,16 +124,11 @@ def main():
         print_pred = print_pred.float()
         print_pred[~mask_norm] = 0
 
-        visuals['mask'] = mask
+        visuals = OrderedDict()
         visuals['print pred'] = print_pred
         visuals['depth pred'] = depth_color
         visuals['depth gray'] = depth_gray
 
-        save_path = os.path.join(opt.output, image_dir, "grid", name[0])
-        save_tensor_grid(visuals, save_path, fig_shape=[2, 3], figsize=(12, 8))
-
-        del visuals[name[0]]
-        visuals['real image'] = image
         save_individual_images(
             visuals,
             os.path.join(opt.output, image_dir),
