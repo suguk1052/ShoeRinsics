@@ -119,6 +119,10 @@ and 99th percentiles by default to boost contrast. All outputs are resized to a
 width of 512&nbsp;pixels (while keeping the original aspect ratio) and saved under
 `results/shoerinsics/masked_images/` in the repository root.
 
+To instead generate a grayscale depth map where closer areas are darker and
+farther areas are brighter, run `grayscale2.py` with the same arguments as
+`grayscale.py`.
+
 ### Training
 
 <p align="justify">
