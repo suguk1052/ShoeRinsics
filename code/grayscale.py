@@ -9,12 +9,11 @@ from code.util.option import Options
 from code.util.misc import (
     make_variable,
     save_individual_images,
-    get_color_mapped_images,
 )
 from code.util.augmentation import reverse_modification, get_image_modifications
 from code.model.models import get_model
 from code.dataset.masked_image_dataset import MaskedImageDataset
-from code.util.evaluation import get_print
+# get_print and color-mapped images are not needed when only saving depth_gray
 
 
 def get_average_visuals(net, image, mask, visuals=None, subtract_min_depth=True, conv=True, test_time_aug=False):
@@ -98,33 +97,19 @@ def main():
         image, mask, _, _, name, pad_h_before, pad_h_after, pad_w_before, pad_w_after = data
         image, mask = [make_variable(item, requires_grad=False).to(device) for item in [image, mask]]
 
-        visuals = OrderedDict()
-
         visuals = get_average_visuals(
-            net, image, mask, visuals=visuals, conv=False, test_time_aug=opt.test_time_aug
+            net, image, mask, visuals=OrderedDict(), conv=False, test_time_aug=opt.test_time_aug
         )
+        depth_pred = visuals['depth pred']
 
         lower, upper = opt.depth_percentiles
         depth_norm, mask_norm = enhance_depth_contrast(
-            visuals['depth pred'], mask, lower=lower, upper=upper
+            depth_pred, mask, lower=lower, upper=upper
         )
-        depth_color = get_color_mapped_images(
-            depth_norm.squeeze().cpu().numpy(),
-            mask_norm.squeeze().cpu().numpy(),
-            mask_color=0,
-            original_scale=True,
-            to_tensor=True,
-        ).to(device)
         depth_gray = 1 - depth_norm
         depth_gray[~mask_norm] = 0.5
 
-        print_pred = ~get_print(depth_norm, mask_norm, None)
-        print_pred = print_pred.float()
-        print_pred[~mask_norm] = 0
-
         visuals = OrderedDict()
-        visuals['print pred'] = print_pred
-        visuals['depth pred'] = depth_color
         visuals['depth gray'] = depth_gray
 
         save_individual_images(
