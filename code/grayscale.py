@@ -13,7 +13,7 @@ from code.util.misc import (
 from code.util.augmentation import reverse_modification, get_image_modifications
 from code.model.models import get_model
 from code.dataset.masked_image_dataset import MaskedImageDataset
-# get_print and color-mapped images are not needed when only saving depth_gray
+# get_print and color-mapped images are not needed when only saving grayscale outputs
 
 
 def get_average_visuals(net, image, mask, visuals=None, subtract_min_depth=True, conv=True, test_time_aug=False):
@@ -106,13 +106,16 @@ def main():
         depth_norm, mask_norm = enhance_depth_contrast(
             depth_pred, mask, lower=lower, upper=upper
         )
-        depth_gray = 1 - depth_norm
+        depth_gray = depth_norm
+        reverse_depth_gray = 1 - depth_norm
         depth_gray[~mask_norm] = 0.5
+        reverse_depth_gray[~mask_norm] = 0.5
 
         mask_gray = (~mask_norm).float()
 
         visuals = OrderedDict()
-        visuals['depth gray'] = depth_gray
+        visuals['depth_gray'] = depth_gray
+        visuals['reverse_depth_gray'] = reverse_depth_gray
         visuals['mask'] = mask_gray
 
         save_individual_images(
