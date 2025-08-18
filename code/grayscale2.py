@@ -109,8 +109,11 @@ def main():
         depth_gray = depth_norm
         depth_gray[~mask_norm] = 0.5
 
+        mask_gray = (~mask_norm).float()
+
         visuals = OrderedDict()
         visuals['depth gray'] = depth_gray
+        visuals['mask'] = mask_gray
 
         save_individual_images(
             visuals,
