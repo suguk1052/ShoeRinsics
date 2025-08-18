@@ -126,6 +126,7 @@ def main():
         visuals['print pred'] = print_pred
         visuals['depth pred'] = depth_color
         visuals['depth gray'] = depth_gray
+        visuals['mask'] = mask_norm.float()
 
         save_individual_images(
             visuals,

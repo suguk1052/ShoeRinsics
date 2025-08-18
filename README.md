@@ -112,12 +112,12 @@ background is completely black. Images can be of any resolution; the script
 resizes each one so the width is 512&nbsp;pixels before inference and runs only
 on GPU&nbsp;0.
 
-Only the print prediction, the colorized depth (`depth_pred`), and the inverted
-grayscale depth (`depth_gray`) are saved for each input. Grid layouts, masks,
-and the original image are omitted. Depth values are normalized using the 0th
-and 99th percentiles by default to boost contrast. All outputs are resized to a
-width of 512&nbsp;pixels (while keeping the original aspect ratio) and saved under
-`results/shoerinsics/masked_images/` in the repository root.
+Only the print prediction, the colorized depth (`depth_pred`), the inverted
+grayscale depth (`depth_gray`), and the mask (`mask`) are saved for each input.
+Grid layouts and the original image are omitted. Depth values are normalized
+using the 0th and 99th percentiles by default to boost contrast. All outputs are
+resized to a width of 512&nbsp;pixels (while keeping the original aspect ratio) and
+saved under `results/shoerinsics/masked_images/` in the repository root.
 
 To instead generate a grayscale depth map where closer areas are darker and
 farther areas are brighter, run `grayscale2.py` with the same arguments as
